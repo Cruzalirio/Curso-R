@@ -1,1 +1,2 @@
-# Introducci-n-a-R
+# Curso de R
+
