@@ -1,0 +1,88 @@
+---
+title: "Clase 5"
+author: "Nelson"
+date: "21/6/2021"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Mi primer R markdown (cuaderno)
+Vamos a cargar los datos que están en la url [celulares](https://drive.google.com/file/d/1UoDkb_qP0jwA3Oh1UkE8WSkcbGSKDab5/view?usp=sharing)
+```{r}
+library(tidyverse)
+Hurtos <- read_csv("C:/Users/nelso/Downloads/Hurto_de_celulares_2018 (2).csv")
+head(Hurtos)
+```
+Y si colocamos la instrucción `echo=FALSE`
+```{r, echo=FALSE}
+library(readr)
+Hurtos <- read_csv("C:/Users/nelso/Downloads/Hurto_de_celulares_2018 (2).csv")
+head(Hurtos)
+```
+
+Se puede colocar código en $\LaTeX$, usando la $para \, formula \, en \,linea$ y 
+$$para \, formula\, centrada$$
+## Calcular la media geometrica
+La media geometrica se define como:
+$$\bar{x}_g=\sqrt[n]{\prod_{i=1}^n x_i}$$
+Una función para calcular la media geometrica seria
+
+```{r}
+med_geo <- function(x, na.omit=TRUE){
+  if(min(na.omit(x))>0){
+  if(na.omit==TRUE){
+    x=na.omit(x)
+    med_geo <- prod(x)**(1/length(x))
+  }else{
+    med_geo <- prod(x)**(1/length(x))
+  }
+  }else{
+    med_geo<-"nos jodimos"
+  }
+  return(med_geo)
+}
+```
+Entonces la media geometrica de la Edad es=`r med_geo(Hurtos$Edad)`, pero tiene ceros, entonces es `r med_geo(Hurtos %>% filter(Edad>0) %>% select(Edad))`, porque
+
+```{r}
+prod(Hurtos %>% filter(Edad>0) %>% select(Edad))
+```
+
+es mejor usar propiedades 
+
+$$\bar{x}_g=e^{ln(\bar{x}_g)}=e^{\frac{1}{n}\sum_{i=1}^nln(x_i)}$$
+Entonces la función quedaria 
+
+```{r}
+med_geo <- function(x, na.omit=TRUE){
+  if(min(na.omit(x))>0){
+  if(na.omit==TRUE){
+    x=na.omit(x)
+    med_geo <- exp(sum(log(x))/length(x))
+  }else{
+    med_geo <- exp(sum(log(x))/length(x))
+  }
+  }else{
+    med_geo<-"nos jodimos"
+  }
+  return(med_geo)
+}
+```
+Por lo tanto la media geometrica de la Edad es `r med_geo(Hurtos$Edad[Hurtos$Edad>0])`
+
+## Incluir graficas
+
+
+```{r, echo=FALSE}
+ggplot(Hurtos, aes(x=Sexo, fill=Zona)) + geom_bar()
+
+```
+O de otra forma
+```{r, echo=TRUE}
+ggplot(Hurtos, aes(x=Sexo, fill=Zona)) + geom_bar()
+
+```
