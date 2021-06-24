@@ -2,10 +2,34 @@ library(tidyverse)
 ## cargar una base 
 
 urls<-paste("https://raw.githubusercontent.com/Cruzalirio/Ucentral/master/Bases/ICFES/PruebaSaber",1:12,".csv", sep="")
+urls
+
 
 datos=read_csv2(urls[1])
+
+
 for( i in urls[-1]){
+  print(i)
   datos <- rbind(datos, read_csv2(i))
+}
+
+n=length(urls)
+for( i in 2:n){
+  print(i)
+  datos <- rbind(datos, read_csv2(urls[i]))
+}
+
+
+
+nombres <- c("Al", "El", "Il", "Ol", "Ul")
+
+for(i in nombres){
+  print(i)
+}
+
+
+for(i in 1:length(nombres)){
+  print(nombres[i])
 }
 
 
@@ -14,12 +38,40 @@ for( i in urls[-1]){
 datos %>% group_by(FAMI_CUARTOSHOGAR) %>% count()
 
 datos <-datos %>% mutate(FAMI_CUARTOSHOGAR= replace(FAMI_CUARTOSHOGAR,
-                                                    FAMI_CUARTOSHOGAR %in% c("Una", "Uno"),1))
+                         FAMI_CUARTOSHOGAR %in% c("Una", "Uno"),"Uno"))
 
 datos <-datos %>% mutate(FAMI_CUARTOSHOGAR= replace(FAMI_CUARTOSHOGAR,
-                                                    FAMI_CUARTOSHOGAR==c("Diez o más"),10))
+                FAMI_CUARTOSHOGAR==c("Diez o más"),"Diez o mas"))
 
 datos %>% group_by(FAMI_CUARTOSHOGAR) %>% count()
+
+datos %>% filter(FAMI_CUARTOSHOGAR=="Diez o m\xa0s")
+
+### Quitar lo que no sea alfanumerico
+
+cuartos <-str_replace(datos$FAMI_CUARTOSHOGAR, "[^[:alnum:]]", "")
+
+cuartos <- as.factor(cuartos)
+
+levels(cuartos) <- c("Cinco","Cuatro","Diez o más","Dos","Nueve","Ocho","Seis",     
+                     "Siete","Tres","Uno")
+
+cuartos <- ordered(cuartos, levels=c("Uno", "Dos", "Tres", "Cuatro", "Cinco",
+                                     "Seis", "Siete", "Ocho", "Nueve", "Diez o más"))
+
+cuartos
+datos <- datos %>% mutate(FAMI_CUARTOSHOGAR=cuartos)
+
+cuartos
+datos %>% group_by(FAMI_CUARTOSHOGAR) %>% count()
+
+
+as.numeric(cuartos)
+
+
+faltantes <-datos %>% filter(is.na(FAMI_CUARTOSHOGAR)) %>% data.frame()
+write_csv2(faltantes, "faltantes.csv")
+getwd()
 
 
 ### Usemos plotly
@@ -27,12 +79,24 @@ datos %>% group_by(FAMI_CUARTOSHOGAR) %>% count()
 library(plotly)
 
 fig <- plot_ly(datos, labels=~ESTU_GENERO, type="pie")
+
 fig
 
 fig %>% layout(title="Un pastel")
 
+####
+###Instalar la libreria magic
+
 ### Que es una lista?
 
+caneca=list("obj1"=datos, "obj2"=fig, "faltantes"=faltantes, "links"=urls)
+caneca$obj1
+
+caneca[1]
+
+caneca[[1]]
+caneca$obj2
+print(fig)
 
 colors <- c('rgb(211,94,96)', 'rgb(128,133,133)')
 
@@ -49,6 +113,7 @@ fig <- fig %>% layout(title = 'Genero de los evaluados',
                       yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 
+fig
 ### Uno de dispersion
 
 datos %>% plot_ly(x=~MOD_RAZONA_CUANTITAT_PUNT, y=~MOD_LECTURA_CRITICA_PUNT, type="scatter")
@@ -117,11 +182,17 @@ datos %>% filter(!is.na(ESTU_GENERO)) %>%
   summarise(Conteo=n(), Razo_cuan = mean(MOD_RAZONA_CUANTITAT_PUNT),
             Lec_crit = mean(MOD_LECTURA_CRITICA_PUNT)) %>%
   plot_ly(x=~Razo_cuan, y=~Lec_crit,text=~ESTU_DEPTO_RESIDE, type="scatter", 
-          mode="markers", colors=c("Red", "Green"),
+          mode="text", colors=c("Red", "Green"),
           color =~ESTU_GENERO, marker=list(size=~Conteo*0.005, opacity=0.5))
 
 
-
+datos %>% filter(!is.na(ESTU_GENERO)) %>%
+  group_by(ESTU_GENERO, ESTU_DEPTO_RESIDE) %>% 
+  summarise(Conteo=n(), Razo_cuan = mean(MOD_RAZONA_CUANTITAT_PUNT),
+            Lec_crit = mean(MOD_LECTURA_CRITICA_PUNT)) %>%
+  plot_ly(x=~Razo_cuan, y=~Lec_crit,text=~ESTU_DEPTO_RESIDE, type="scatter", 
+          mode="markers", colors=c("Red", "Green"),
+          marker=list(size=~Conteo*0.005, opacity=0.5))
 
 
 
