@@ -1,23 +1,3 @@
-n=1000  ## Número de pasos
-tt=1:n
-pos=numeric(n) ## Vector vacio de tamaño n numerico
-### X número de personas con miopia en 22 personas
-rbinom(100,1, 0.5)  ### 0 es cara, 1 Sello
-pos[1]=0
-p=0.501 ### Probabilidad de sello
-for(i in 2:n){
-  x=rbinom(1,1,p)
-  if(x==0){
-    pos[i]=pos[i-1]-1
-  }else{
-    pos[i]=pos[i-1]+1
-  }
-}
-pos
-plot(pos, type="o")
-
-
-
 
 ### Una base
 
@@ -28,13 +8,19 @@ url2="https://raw.githubusercontent.com/Cruzalirio/Ucentral/master/Bases/ICFES/P
 Icfes1 <- read.csv(url1, sep=";")
 Icfes2 <- read.csv(url2, sep=";")
 
+names(Icfes1)==names(Icfes2) ### Son las mismas columnas
 
-Icfes=rbind(Icfes1, Icfes2)
+Comparacion = Icfes1==Icfes2 ### No son las mismas filas
+
+summary(Comparacion)
+
+Icfes=rbind(Icfes1, Icfes2) ### Uniendolas por filas
+### row bind, sean las mismas columnas
 
 
 library(tidyverse)
 
-table(Icfes$ESTU_GENERO)
+table(Icfes$ESTU_GENERO) ### Tabla de frecuencias
 
 fig <- ggplot(Icfes, aes(x=ESTU_GENERO))
 fig
@@ -48,11 +34,23 @@ fig+ geom_bar()+xlab("Genero") + ylab("Conteo")
 
 
 fig <- fig+ geom_bar()+xlab("Genero") + ylab("Conteo")
+## En el objeto fig incluyo a fig, las barras, etiquetas a x y etiquetas a y
 
-fig+ ggtitle("Frecuencias por Genero")
+fig+ ggtitle("Frecuencias por Genero") ### Además del titulo
 
-fig <- ggplot(Icfes, aes(x=ESTU_GENERO))+geom_bar(width=0.8,
+fig <- ggplot(Icfes, aes(x=ESTU_GENERO))+geom_bar(width=0.7,
               colour="red", fill="blue")
+fig
+
+Icfes$ESTU_GENERO_Mo = factor(Icfes$ESTU_GENERO, levels=c("M", "F"),
+                              ordered = TRUE) ### Ordenando
+
+levels(Icfes$ESTU_GENERO_Mo) = c("Masculino", "Femenino")### Cambiando las etiquetas
+
+## Graficar
+
+fig <- ggplot(Icfes, aes(x=ESTU_GENERO_Mo))+geom_bar(width=0.7,
+                                                  colour="red", fill="blue")
 fig
 
 colors()
@@ -63,37 +61,44 @@ fig <- ggplot(Icfes, aes(x=ESTU_GENERO))+geom_histogram(width=0.8, colour="red",
 fig
 
 
+
+### Un histograma
 fig <- ggplot(Icfes, aes(x=PUNT_GLOBAL))+
   geom_histogram( colour="red", fill="blue")
 fig
 
 
 
-#### 
+#### Un boxplot
 
 fig <- ggplot(Icfes, aes(x=PUNT_GLOBAL))+
   geom_boxplot( colour="red", fill="blue")
 fig
 
+#####
+fig <- ggplot(Icfes, aes(y=PUNT_GLOBAL))+
+  geom_boxplot( colour="red", fill="blue")
+fig
+
+### Ejemplo de la ayuda en 
+### chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/viewer.html?pdfurl=https%3A%2F%2Fraw.githubusercontent.com%2Frstudio%2Fcheatsheets%2Fmaster%2Fdata-visualization-2.1.pdf&clen=1949514&chunk=true
+e <- ggplot(mpg, aes(cty, hwy))
+
+e + geom_label(aes(label = cty), nudge_x = 1, nudge_y = 1) 
 
 
-
-s <- ggplot(mpg, aes(fl, fill = drv))
-
-s + geom_bar(position = "fill")
+c <- ggplot(mpg, aes(hwy)); c2 <- ggplot(mpg)
+c + geom_density(kernel = "gaussian") 
 
 
+fig = ggplot(Icfes, aes(x=MOD_RAZONA_CUANTITAT_PUNT))
+fig+geom_density()+ xlab("Puntaje en RC")+
+  ylab("Densidad")+ ggtitle("Distribución de los puntajes")
 
-library(mapproj)
-
-b <- ggplot(mpg, aes(fl))
-r <- b + geom_bar()
-r + coord_map(projection = "ortho",
-              orientation=c(41, -74, 0))
 
 #### 
 
-fig <- ggplot(Icfes, aes(x=PUNT_GLOBAL, y=ESTU_GENERO))+
+fig <- ggplot(Icfes, aes(x=PUNT_GLOBAL, y=ESTU_GENERO_Mo))+
   geom_boxplot( colour="red", fill="blue")
 fig
 
@@ -102,8 +107,6 @@ fig <- ggplot(Icfes, aes(x=PUNT_GLOBAL, y=ESTU_GENERO))+geom_boxplot()
 fig
 
 
-fig <- ggplot(Icfes, aes(x=PUNT_GLOBAL, y=ESTU_GENERO))+geom_boxplot()
-fig
 
 ####
 
@@ -127,18 +130,43 @@ Icfes %>% group_by(ESTU_ESTADOCIVIL) %>% summarise(n())
 
 ### library string 
 
-gsub("¢","ó","Uni¢n libre")
+gsub("¢","ó","Uni¢n libre") ### reemplaza el simbolo raro por ó
 
-gsub("¢","ó",c("Uni¢n libre", "Uni¢n", "Alirio", "Algodón"))
+gsub("¢","ó",c("Uni¢n libre", "Uni¢n", "Alirio", "Algodón")) ### Le doy 4 textos
 
 gsub("¢","NA",c("Uni¢n libre", "Uni¢n", "Alirio", "Algodón"))
 
 
+### Lo qeu voy es a cambiar los simbolos raros
 Icfes <- Icfes %>% mutate(ESTU_ESTADOCIVIL= gsub("¢","ó",ESTU_ESTADOCIVIL))
 
 Icfes %>% group_by(ESTU_ESTADOCIVIL) %>% summarise(n())
 
 fig <- ggplot(Icfes,aes(x=ESTU_GENERO, fill=ESTU_ESTADOCIVIL))
+
+fig+geom_bar(position = "dodge")
+
+### ordenar la variable
+
+Icfes %>% group_by(ESTU_ESTADOCIVIL) %>% summarise(n())
+
+
+
+Icfes$ESTADO_CIVIL_ORDE = factor(Icfes$ESTU_ESTADOCIVIL,levels=c("Soltero","Unión libre","Casado",
+                                                                 "Separado y/o Divorciado", "Viudo",
+                                                                 ""),
+                                 ordered = TRUE)
+
+Icfes %>% group_by(ESTADO_CIVIL_ORDE) %>% summarise(n())
+fig <- ggplot(Icfes,aes(x=ESTU_GENERO, fill=ESTADO_CIVIL_ORDE))
+
+fig+geom_bar(position = "dodge")
+
+
+fig <- ggplot(Icfes,aes(x=ESTU_GENERO_Mo, fill=ESTADO_CIVIL_ORDE))
+
+fig+geom_bar(position = "dodge")+ scale_fill_discrete(name = "Estado Civil")+
+  geom_text()
 
 ### Anexar viudo a separado o divorciado
 
